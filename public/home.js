@@ -31,8 +31,7 @@
     return el('article', { className: lead ? 'story lead' : 'story' },
       lead && a.image ? el('a', { href: link(a), className: 'story-image' }, el('img', { src: a.image, alt: a.imageCaption || '', loading: 'lazy', referrerPolicy: 'no-referrer' })) : null,
       el('p', { className: 'kicker' },
-        el('a', { href: `/?category=${encodeURIComponent(a.category)}`, textContent: a.category }),
-        a.example ? el('span', { className: 'sample', textContent: 'Sample' }) : null),
+        el('a', { href: `/?category=${encodeURIComponent(a.category)}`, textContent: a.category })),
       el(lead ? 'h2' : 'h3', {}, el('a', { href: link(a), textContent: a.title })),
       a.summary ? el('p', { className: 'standfirst', textContent: a.summary }) : null,
       el('p', { className: 'byline', textContent: byline(a) }));
@@ -59,7 +58,7 @@
       const { data, res } = await api(`/api/articles?${query}`);
       const total = parseInt(res.headers.get('X-Total-Count'), 10) || data.length;
       if (!data.length) {
-        box.replaceChildren(el('p', { className: 'empty', textContent: q ? 'No articles match your search.' : 'No articles in this section yet.' }));
+        box.replaceChildren(el('p', { className: 'empty', textContent: q ? 'No articles match your search.' : category ? 'No articles in this section yet.' : 'No articles published yet. Check back soon.' }));
       } else {
         const [first, ...rest] = data;
         const showLead = page === 1 && !q;

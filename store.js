@@ -25,6 +25,7 @@ function readFile() {
 }
 function writeFile(db) {
   try {
+    fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
   } catch (err) {
     memory = db;
@@ -68,19 +69,6 @@ const store = {
     const db = readFile();
     delete db[hash];
     writeFile(db);
-  },
-
-  /** Seed a hash once, if it has never been written. Never throws on read-only hosts. */
-  async seed(hash, entries) {
-    if (redis) {
-      if ((await redis.exists(PREFIX + hash)) || !Object.keys(entries).length) return;
-      await redis.hset(PREFIX + hash, entries);
-      return;
-    }
-    const db = readFile();
-    if (db[hash]) return;
-    db[hash] = clone(entries);
-    try { writeFile(db); } catch { /* served from memory */ }
   },
 };
 

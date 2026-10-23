@@ -13,7 +13,6 @@
     box.className = 'article';
     fill(box,
       a.status !== 'published' ? el('p', { className: 'notice', textContent: STATUS[a.status] || a.status }) : null,
-      a.example ? el('p', { className: 'notice', textContent: 'Sample article: an example of what a story looks like on the site.' }) : null,
       el('p', { className: 'kicker' }, el('a', { href: `/?category=${encodeURIComponent(a.category)}`, textContent: a.category })),
       el('h1', { textContent: a.title }),
       a.summary ? el('p', { className: 'standfirst', textContent: a.summary }) : null,

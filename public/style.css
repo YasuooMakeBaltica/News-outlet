@@ -93,7 +93,6 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.2rem 1rem 2rem; }
 .section-title { text-align: center; font-size: 1.6rem; margin: 0 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.4rem; }
 .kicker { margin: 0 0 0.3rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: bold; }
 .kicker a { text-decoration: none; }
-.sample { margin-left: 0.5rem; font-weight: normal; color: var(--ink-soft); border: 1px dotted var(--ink-soft); padding: 0 0.3rem; }
 .story h2, .story h3 { margin: 0 0 0.4rem; line-height: 1.2; }
 .story h2 a, .story h3 a { text-decoration: none; }
 .story h2 a:hover, .story h3 a:hover { text-decoration: underline; }
@@ -180,6 +179,7 @@ figcaption { font-size: 0.8rem; color: var(--ink-soft); font-style: italic; marg
 .writer-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; margin: 0.6rem 0; }
 .writer-list li { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px dotted var(--rule); }
 
+.site-footer a { color: var(--accent); }
 .site-footer { text-align: center; padding: 1.5rem 1rem; color: var(--ink-soft); font-size: 0.85rem; border-top: 3px double var(--rule); max-width: 64rem; margin: 0 auto; }
 
 @media (max-width: 40rem) {

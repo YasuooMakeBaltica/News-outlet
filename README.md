@@ -39,8 +39,6 @@ Then open http://localhost:3000. Without Redis, data is kept in `data/db.json`.
 | `EDITOR_DISCORD_IDS` | Comma-separated Discord user IDs of the editors |
 | `OUTLET_NAME` | The newspaper's name shown in the masthead (default "The Redmont Gazette") |
 
-The three sample articles are marked "Sample" and can be deleted by an editor from the newsroom.
-
 ## License
 
 MIT, see [LICENSE](LICENSE).

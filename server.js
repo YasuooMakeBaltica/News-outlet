@@ -10,8 +10,6 @@ const PORT = process.env.PORT || 3000;
 const OUTLET_NAME = process.env.OUTLET_NAME || 'The Redmont Gazette';
 const CATEGORIES = ['Politics', 'Courts & Law', 'Business & Economy', 'Opinion', 'Community', 'Events'];
 const REACTIONS = ['👍', '❤️', '😮', '😂', '😡'];
-// Required (not read at runtime) so Vercel bundles the sample articles with the function.
-const SEED = require('./data/seed.json');
 
 // --- helpers -------------------------------------------------------------------
 const str = (v, max) => String(v ?? '').trim().slice(0, max);
@@ -27,8 +25,17 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
   res.status(500).json({ error: 'Something went wrong.' });
 });
 
-let seeded = null;
-const ensureSeeded = () => (seeded ||= store.seed('articles', SEED.articles).catch((err) => { seeded = null; throw err; }));
+// Earlier versions seeded three sample articles. Remove them (and their comments and
+// reactions) once per server start, so they disappear from existing databases too.
+let cleaned = null;
+const removeSamples = () => (cleaned ||= (async () => {
+  for (const a of Object.values(await store.all('articles'))) {
+    if (!a.example) continue;
+    await store.del('articles', a.id);
+    await store.drop(`comments:${a.id}`);
+    await store.drop(`reactions:${a.id}`);
+  }
+})().catch((err) => { cleaned = null; throw err; }));
 
 async function roles(req) {
   const user = getUser(req);
@@ -60,7 +67,7 @@ function present(a, { full = false } = {}) {
     id: a.id, slug: a.slug, title: a.title, summary: a.summary, category: a.category,
     image: a.image, imageCaption: a.imageCaption, authorName: a.authorName,
     status: a.status, publishedAt: a.publishedAt, updatedAt: a.updatedAt,
-    readingMinutes: readingMinutes(a.body), commentCount: a.commentCount || 0, example: !!a.example,
+    readingMinutes: readingMinutes(a.body), commentCount: a.commentCount || 0,
   };
   if (full) Object.assign(out, { body: a.body, editorNote: a.editorNote || '', createdAt: a.createdAt, submittedAt: a.submittedAt, authorId: a.authorId });
   return out;
@@ -69,7 +76,7 @@ function present(a, { full = false } = {}) {
 const canSee = (a, r) => a.status === 'published' || r.editor || (r.user && a.authorId === r.user.id);
 
 async function findArticle(idOrSlug) {
-  await ensureSeeded();
+  await removeSamples();
   const direct = await store.get('articles', idOrSlug);
   if (direct) return direct;
   return Object.values(await store.all('articles')).find((a) => a.slug === idOrSlug) || null;
@@ -98,7 +105,7 @@ app.get('/api/me', wrap(async (req, res) => {
 
 // Front page and sections: published articles, newest first.
 app.get('/api/articles', wrap(async (req, res) => {
-  await ensureSeeded();
+  await removeSamples();
   const q = str(req.query.q, 100).toLowerCase();
   const category = CATEGORIES.includes(req.query.category) ? req.query.category : '';
   const items = Object.values(await store.all('articles'))
@@ -128,7 +135,7 @@ app.get('/api/articles/:slug', wrap(async (req, res) => {
 app.get('/api/newsroom', wrap(async (req, res) => {
   const r = await roles(req);
   if (needLogin(r, res) || needWriter(r, res)) return;
-  await ensureSeeded();
+  await removeSamples();
   const all = Object.values(await store.all('articles'))
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
   res.json({
