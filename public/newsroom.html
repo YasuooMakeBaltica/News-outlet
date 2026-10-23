@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Newsroom</title>
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try { if (localStorage.getItem('theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="account"></div>
+  <header class="masthead">
+    <div class="masthead-top"><span data-today></span><span>Redmont, Commonwealth of Redmont</span><span>Democracy Craft</span></div>
+    <a class="masthead-name" href="/" data-outlet-name>&nbsp;</a>
+    <p class="masthead-tag">News of the Commonwealth of Redmont</p>
+    <nav class="sections" id="sections" aria-label="Sections"></nav>
+  </header>
+
+  <main class="newsroom">
+    <h1 class="page-title">Newsroom</h1>
+    <p class="muted" id="newsroomStatus">Loading…</p>
+
+    <div id="newsroomBody" hidden>
+      <section class="panel" id="editorPanel">
+        <h2 id="editorTitle">Write a new article</h2>
+        <form class="article-form" id="articleForm">
+          <label>Headline <input name="title" required maxlength="140" placeholder="e.g. Congress passes the Housing Act"></label>
+          <div class="form-row">
+            <label>Section <select name="category"></select></label>
+            <label>Image link (optional) <input name="image" type="url" placeholder="https://… (an image hosted elsewhere)"></label>
+          </div>
+          <label>Image caption (optional) <input name="imageCaption" maxlength="160"></label>
+          <label>Summary <textarea name="summary" rows="2" maxlength="300" placeholder="One or two sentences shown on the front page"></textarea></label>
+          <label>Article <textarea name="body" rows="14" required maxlength="20000" placeholder="Write your story here. Leave a blank line between paragraphs."></textarea></label>
+          <p class="format-help">Formatting: blank line = new paragraph · <code>## Subheading</code> · <code>&gt; Quote</code> · <code>**bold**</code> · <code>*italic*</code> · <code>[link text](https://…)</code></p>
+          <div class="form-actions">
+            <button type="submit" class="primary">Save draft</button>
+            <button type="button" id="previewBtn">Preview</button>
+            <button type="button" id="cancelEdit" hidden>Cancel editing</button>
+          </div>
+        </form>
+        <article class="preview article-body" id="preview" hidden></article>
+      </section>
+
+      <section class="panel">
+        <h2>My articles</h2>
+        <ul class="story-list" id="mine"></ul>
+      </section>
+
+      <section class="panel editor-only" hidden>
+        <h2>Waiting for review</h2>
+        <ul class="story-list" id="queue"></ul>
+      </section>
+
+      <section class="panel editor-only" hidden>
+        <h2>All articles</h2>
+        <ul class="story-list" id="all"></ul>
+      </section>
+
+      <section class="panel editor-only" hidden>
+        <h2>Writers</h2>
+        <p class="muted">Writers can draft articles and send them to editors for review. Add them by their Discord user ID (Discord settings → Advanced → Developer Mode, then right-click their name → Copy User ID).</p>
+        <form class="writer-form" id="writerForm">
+          <input name="id" required inputmode="numeric" placeholder="Discord user ID" aria-label="Discord user ID">
+          <input name="name" required maxlength="60" placeholder="Name" aria-label="Name">
+          <button type="submit" class="primary">Add writer</button>
+        </form>
+        <ul class="writer-list" id="writers"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer"><span data-outlet-name></span> · An independent Democracy Craft newspaper · MIT License</footer>
+  <script src="common.js"></script>
+  <script src="newsroom.js"></script>
+</body>
+</html>

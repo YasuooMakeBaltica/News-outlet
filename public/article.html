@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Article</title>
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try { if (localStorage.getItem('theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="account"></div>
+  <header class="masthead">
+    <div class="masthead-top"><span data-today></span><span>Redmont, Commonwealth of Redmont</span><span>Democracy Craft</span></div>
+    <a class="masthead-name" href="/" data-outlet-name>&nbsp;</a>
+    <p class="masthead-tag">News of the Commonwealth of Redmont</p>
+    <nav class="sections" id="sections" aria-label="Sections"></nav>
+  </header>
+
+  <main class="article-page">
+    <article id="article" aria-live="polite"><p class="muted">Loading article…</p></article>
+    <section class="reactions" id="reactions" hidden></section>
+    <section class="comments" id="comments" hidden>
+      <h2>Comments</h2>
+      <div id="commentForm"></div>
+      <ol class="comment-list" id="commentList"></ol>
+    </section>
+  </main>
+
+  <footer class="site-footer"><span data-outlet-name></span> · An independent Democracy Craft newspaper · MIT License</footer>
+  <script src="common.js"></script>
+  <script src="article.js"></script>
+</body>
+</html>
