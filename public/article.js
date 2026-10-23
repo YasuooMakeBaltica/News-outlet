@@ -1,6 +1,6 @@
 // A single article: the story, reactions and comments.
 (() => {
-  const { $, el, fill, api, fmtDate, renderBody, me, loginHref } = window.News;
+  const { $, el, fill, api, fmtDate, renderBody, me, loginHref, nameWithBadges } = window.News;
   const slug = new URLSearchParams(location.search).get('slug') || '';
   let article = null;
   let viewer = { loggedIn: false };
@@ -17,7 +17,8 @@
       el('h1', { textContent: a.title }),
       a.summary ? el('p', { className: 'standfirst', textContent: a.summary }) : null,
       el('p', { className: 'byline' },
-        `By ${a.authorName} · ${a.publishedAt ? fmtDate(a.publishedAt, true) : 'Unpublished'} · ${a.readingMinutes} min read`,
+        'By ', nameWithBadges(a.authorName, a.authorBadges),
+        ` · ${a.publishedAt ? fmtDate(a.publishedAt, true) : 'Unpublished'} · ${a.readingMinutes} min read`,
         a.canEdit ? el('a', { className: 'edit-link', href: `/newsroom.html?edit=${encodeURIComponent(a.id)}`, textContent: 'Edit' }) : null),
       a.image ? el('figure', {},
         el('img', { src: a.image, alt: a.imageCaption || '', referrerPolicy: 'no-referrer' }),
@@ -81,7 +82,7 @@
       list.replaceChildren(...data.map((c) => el('li', { className: `comment${c.hidden ? ' hidden-comment' : ''}` },
         el('img', { src: c.avatarUrl, alt: '', className: 'comment-avatar', referrerPolicy: 'no-referrer' }),
         el('div', { className: 'comment-main' },
-          el('p', { className: 'comment-meta' }, el('strong', { textContent: c.userName }), ` · ${fmtDate(c.createdAt)}`,
+          el('p', { className: 'comment-meta' }, nameWithBadges(c.userName, c.badges, 'strong'), ` · ${fmtDate(c.createdAt)}`,
             c.hidden ? el('em', { textContent: ` · hidden by ${c.hiddenBy || 'an editor'}` }) : null),
           el('p', { className: 'comment-text', textContent: c.text }),
           commentActions(c)))));

@@ -1,6 +1,6 @@
 // Newsroom: writers draft and submit articles; editors review, publish and manage writers.
 (() => {
-  const { $, el, fill, api, fmtDate, renderBody, me, site, loginHref } = window.News;
+  const { $, el, fill, api, fmtDate, renderBody, me, site, loginHref, nameWithBadges } = window.News;
   const form = $('#articleForm');
   let viewer = null;
   let editing = null; // the article being edited, or null for a new one
@@ -87,7 +87,7 @@
       el('div', { className: 'story-row-main' },
         el('span', { className: `status status-${a.status}`, textContent: STATUS_LABEL[a.status] || a.status }),
         el('strong', { textContent: a.title }),
-        el('span', { className: 'muted', textContent: ` · ${a.category} · by ${a.authorName} · updated ${fmtDate(a.updatedAt)}` }),
+        el('span', { className: 'muted' }, ` · ${a.category} · by `, nameWithBadges(a.authorName, a.authorBadges), ` · updated ${fmtDate(a.updatedAt)}`),
         a.status === 'rejected' && a.editorNote ? el('p', { className: 'editor-note', textContent: `Editor’s note: ${a.editorNote}` }) : null),
       el('div', { className: 'row-actions' }, ...actions));
   }

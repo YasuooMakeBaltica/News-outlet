@@ -10,6 +10,9 @@ const PORT = process.env.PORT || 3000;
 const OUTLET_NAME = process.env.OUTLET_NAME || 'The Redmont Gazette';
 const CATEGORIES = ['Politics', 'Courts & Law', 'Business & Economy', 'Opinion', 'Community', 'Events'];
 const REACTIONS = ['👍', '❤️', '😮', '😂', '😡'];
+// Staff titles shown as badges next to names. Override with STAFF_TITLES="id:Title,id:Title".
+const STAFF_TITLES = Object.fromEntries((process.env.STAFF_TITLES || '1004106545879068753:Dev,1228697861764550759:Owner')
+  .split(',').map((pair) => pair.split(':').map((p) => p.trim())).filter(([id, title]) => /^\d+$/.test(id || '') && title));
 
 // --- helpers -------------------------------------------------------------------
 const str = (v, max) => String(v ?? '').trim().slice(0, max);
@@ -45,6 +48,18 @@ async function roles(req) {
   return { user, editor, writer };
 }
 
+/** Badges for a Discord user: a staff title (Dev, Owner) and their newsroom role (Editor or Writer). */
+async function badgeLookup() {
+  const writers = await store.all('writers');
+  return (userId) => {
+    if (!userId) return [];
+    const badges = STAFF_TITLES[userId] ? [STAFF_TITLES[userId]] : [];
+    if (isEditor({ id: userId })) badges.push('Editor');
+    else if (writers[userId]) badges.push('Writer');
+    return badges;
+  };
+}
+
 const needLogin = (r, res) => (r.user ? false : (res.status(401).json({ error: 'Log in with Discord first.' }), true));
 const needWriter = (r, res) => (r.writer ? false : (res.status(403).json({ error: 'Only writers can do that.' }), true));
 const needEditor = (r, res) => (r.editor ? false : (res.status(403).json({ error: 'Only editors can do that.' }), true));
@@ -62,10 +77,11 @@ function cleanArticle(body) {
 }
 
 /** Public shape of an article; drafts' editor notes only go to people who may see the draft. */
-function present(a, { full = false } = {}) {
+function present(a, { full = false, badges = null } = {}) {
   const out = {
     id: a.id, slug: a.slug, title: a.title, summary: a.summary, category: a.category,
     image: a.image, imageCaption: a.imageCaption, authorName: a.authorName,
+    authorBadges: badges ? badges(a.authorId) : [],
     status: a.status, publishedAt: a.publishedAt, updatedAt: a.updatedAt,
     readingMinutes: readingMinutes(a.body), commentCount: a.commentCount || 0,
   };
@@ -99,6 +115,7 @@ app.get('/api/me', wrap(async (req, res) => {
     avatarUrl: r.user ? avatarUrl(r.user) : null,
     editor: r.editor,
     writer: r.writer,
+    badges: r.user ? (await badgeLookup())(r.user.id) : [],
     loginEnabled,
   });
 }));
@@ -115,7 +132,8 @@ app.get('/api/articles', wrap(async (req, res) => {
   const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 13, 1), 50);
   res.set('X-Total-Count', String(items.length));
-  res.json(items.slice(offset, offset + limit).map((a) => present(a)));
+  const badges = await badgeLookup();
+  res.json(items.slice(offset, offset + limit).map((a) => present(a, { badges })));
 }));
 
 app.get('/api/articles/:slug', wrap(async (req, res) => {
@@ -124,7 +142,7 @@ app.get('/api/articles/:slug', wrap(async (req, res) => {
   if (!a || !canSee(a, r)) return res.status(404).json({ error: 'Article not found.' });
   const reactions = await store.all(`reactions:${a.id}`);
   res.json({
-    ...present(a, { full: true }),
+    ...present(a, { full: true, badges: await badgeLookup() }),
     reactions: Object.fromEntries(REACTIONS.map((e) => [e, (reactions[e] || []).length])),
     myReactions: r.user ? REACTIONS.filter((e) => (reactions[e] || []).includes(r.user.id)) : [],
     canEdit: r.editor || (!!r.user && a.authorId === r.user.id && a.status !== 'published'),
@@ -138,10 +156,11 @@ app.get('/api/newsroom', wrap(async (req, res) => {
   await removeSamples();
   const all = Object.values(await store.all('articles'))
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  const badges = await badgeLookup();
   res.json({
-    mine: all.filter((a) => a.authorId === r.user.id).map((a) => present(a, { full: true })),
-    queue: r.editor ? all.filter((a) => a.status === 'submitted').map((a) => present(a, { full: true })) : [],
-    all: r.editor ? all.map((a) => present(a, { full: true })) : [],
+    mine: all.filter((a) => a.authorId === r.user.id).map((a) => present(a, { full: true, badges })),
+    queue: r.editor ? all.filter((a) => a.status === 'submitted').map((a) => present(a, { full: true, badges })) : [],
+    all: r.editor ? all.map((a) => present(a, { full: true, badges })) : [],
   });
 }));
 
@@ -252,10 +271,11 @@ app.get('/api/articles/:id/comments', wrap(async (req, res) => {
   const r = await roles(req);
   const a = await store.get('articles', req.params.id);
   if (!a || !canSee(a, r)) return res.status(404).json({ error: 'Article not found.' });
+  const badges = await badgeLookup();
   const comments = Object.values(await store.all(`comments:${a.id}`))
     .filter((c) => !c.hidden || r.editor)
     .sort((x, y) => x.createdAt.localeCompare(y.createdAt))
-    .map((c) => ({ ...c, mine: !!r.user && c.userId === r.user.id, userId: undefined }));
+    .map((c) => ({ ...c, badges: badges(c.userId), mine: !!r.user && c.userId === r.user.id, userId: undefined }));
   res.json(comments);
 }));
 
@@ -282,7 +302,7 @@ app.post('/api/articles/:id/comments', wrap(async (req, res) => {
   };
   await store.set(`comments:${a.id}`, comment.id, comment);
   await recount(a.id);
-  res.status(201).json({ ...comment, mine: true, userId: undefined });
+  res.status(201).json({ ...comment, badges: (await badgeLookup())(r.user.id), mine: true, userId: undefined });
 }));
 
 // Readers delete their own comments; editors hide (and can restore) anyone's.

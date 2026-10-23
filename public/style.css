@@ -9,6 +9,9 @@
   --card: #efe3cb;
   --field: #f1e7d2;
   --danger: #8a3b2a;
+  --on-accent: #f4ead6;
+  --badge-owner: #9a7420;
+  --badge-dev: #3f6a63;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -21,6 +24,9 @@
   --card: #332b1d;
   --field: #261f14;
   --danger: #c0644d;
+  --on-accent: #2a2318;
+  --badge-owner: #d4ad55;
+  --badge-dev: #7fb1a8;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -77,7 +83,6 @@ html.theme-fade, html.theme-fade * { transition: background-color 250ms ease, co
 #account .menu.open { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition: opacity 150ms ease-out, transform 150ms ease-out, visibility 0s; }
 .menu-user { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--rule); }
 .menu-user .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 8rem; }
-.badge { font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--paper); background: var(--accent); padding: 0 0.4rem; }
 .menu-item {
   display: block; width: 100%; text-align: left; color: var(--ink); background: none; border: none;
   padding: 0.55rem 0.8rem; text-decoration: none; font-size: 0.95rem;
@@ -187,3 +192,21 @@ figcaption { font-size: 0.8rem; color: var(--ink-soft); font-style: italic; marg
   .masthead-top span:not([data-today]) { display: none; }
   .form-row, .writer-form { grid-template-columns: 1fr; }
 }
+
+/* --- name badges ---------------------------------------------------------------------- */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.who { display: inline-flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; vertical-align: baseline; }
+.badges { display: inline-flex; align-items: center; gap: 0.2rem; font-style: normal; }
+.ubadge {
+  display: inline-flex; align-items: center; gap: 0.2rem; height: 1.25em; padding: 0 0.4em 0 0.3em;
+  font-size: 0.72rem; font-weight: bold; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1;
+  border: 1px solid currentColor; border-radius: 999px; color: var(--accent); white-space: nowrap;
+}
+.ubadge svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ubadge-icon { width: 1.35em; height: 1.35em; padding: 0; justify-content: center; color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.ubadge-icon svg { width: 0.85em; height: 0.85em; }
+.ubadge-editor.ubadge-icon { background: var(--danger); border-color: var(--danger); }
+.ubadge-owner { color: var(--badge-owner); }
+.ubadge-owner svg { fill: currentColor; stroke-width: 1.5; }
+.ubadge-dev { color: var(--badge-dev); }
+.menu-user { flex-wrap: wrap; }

@@ -60,6 +60,49 @@
     return frag;
   }
 
+  // --- badges next to names: staff titles as small labelled pills, newsroom roles as icons ---
+  const ICONS = {
+    Writer: ['M12 19l7-7 3 3-7 7-3-3z', 'M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z', 'M2 2l7.586 7.586', 'M13 11a2 2 0 1 1-4 0 2 2 0 0 1 4 0z'],
+    Editor: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', 'M9 12l2 2 4-4'],
+    Owner: ['M2.5 18.5h19L20 7.5l-5 4-3-7-3 7-5-4z'],
+    Dev: ['M16 18l6-6-6-6', 'M8 6l-6 6 6 6'],
+  };
+  const TITLES = {
+    Writer: 'Writer: writes articles for the paper',
+    Editor: 'Editor: reviews and publishes articles',
+    Owner: 'Owner of the paper',
+    Dev: 'Developer of this site',
+  };
+
+  function icon(name) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    for (const d of ICONS[name] || []) {
+      const p = document.createElementNS(ns, 'path');
+      p.setAttribute('d', d);
+      svg.append(p);
+    }
+    return svg;
+  }
+
+  /** Renders a user's badges. Roles (Writer, Editor) are icon-only; titles (Dev, Owner) show their name. */
+  function badges(list, { labels = false } = {}) {
+    if (!list || !list.length) return null;
+    return el('span', { className: 'badges' }, list.map((b) => {
+      const roleIcon = b === 'Writer' || b === 'Editor';
+      const n = el('span', {
+        className: `ubadge ubadge-${b.toLowerCase().replace(/[^a-z0-9]+/g, '-')}${roleIcon && !labels ? ' ubadge-icon' : ''}`,
+        title: TITLES[b] || b,
+      }, ICONS[b] ? icon(b) : null, roleIcon && !labels ? el('span', { className: 'visually-hidden', textContent: b }) : b);
+      return n;
+    }));
+  }
+
+  /** A name followed by its badges. */
+  const nameWithBadges = (name, list, tag = 'span') => el(tag, { className: 'who' }, el('span', { className: 'who-name', textContent: name }), badges(list));
+
   // --- theme ----------------------------------------------------------------------
   const isDark = () => document.documentElement.dataset.theme === 'dark';
   function setTheme(dark) {
@@ -96,10 +139,9 @@
     }
     const themeItem = el('button', { className: 'menu-item', type: 'button', textContent: themeLabel() });
     themeItem.onclick = () => { setTheme(!isDark()); themeItem.textContent = themeLabel(); };
-    const role = m.editor ? 'Editor' : m.writer ? 'Writer' : null;
     const menu = el('div', { className: 'menu' },
       el('div', { className: 'menu-user' }, el('span', { className: 'name', textContent: m.name }),
-        role ? el('span', { className: 'badge', textContent: role }) : null),
+        badges(m.badges, { labels: true })),
       m.writer ? el('a', { className: 'menu-item', href: '/newsroom.html', textContent: 'Newsroom' }) : null,
       themeItem,
       el('button', {
@@ -135,5 +177,5 @@
   renderAccount();
   renderNav();
 
-  window.News = { $, el, fill, api, fmtDate, renderBody, site, me, loginHref };
+  window.News = { $, el, fill, api, badges, nameWithBadges, fmtDate, renderBody, site, me, loginHref };
 })();

@@ -1,6 +1,6 @@
 // Front page: the lead story, then the rest in newspaper columns. Sections and search via the URL.
 (() => {
-  const { $, el, fill, api, fmtDate } = window.News;
+  const { $, el, fill, api, fmtDate, nameWithBadges } = window.News;
   const PAGE = 13; // one lead story + twelve more
   const params = new URLSearchParams(location.search);
   const category = params.get('category') || '';
@@ -24,8 +24,9 @@
   }
 
   const link = (a) => `/article.html?slug=${encodeURIComponent(a.slug)}`;
-  const byline = (a) => [a.authorName && `By ${a.authorName}`, fmtDate(a.publishedAt), `${a.readingMinutes} min read`,
-    a.commentCount ? `${a.commentCount} comment${a.commentCount === 1 ? '' : 's'}` : null].filter(Boolean).join(' · ');
+  const byline = (a) => el('p', { className: 'byline' }, 'By ', nameWithBadges(a.authorName, a.authorBadges),
+    ` · ${[fmtDate(a.publishedAt), `${a.readingMinutes} min read`,
+      a.commentCount ? `${a.commentCount} comment${a.commentCount === 1 ? '' : 's'}` : null].filter(Boolean).join(' · ')}`);
 
   function story(a, lead) {
     return el('article', { className: lead ? 'story lead' : 'story' },
@@ -34,7 +35,7 @@
         el('a', { href: `/?category=${encodeURIComponent(a.category)}`, textContent: a.category })),
       el(lead ? 'h2' : 'h3', {}, el('a', { href: link(a), textContent: a.title })),
       a.summary ? el('p', { className: 'standfirst', textContent: a.summary }) : null,
-      el('p', { className: 'byline', textContent: byline(a) }));
+      byline(a));
   }
 
   function pager(total) {
